@@ -22,6 +22,7 @@ const (
 
 func main() {
 	testFirstWrite()
+	//testDeleteWithEtag()
 }
 
 func testFirstWrite() {
@@ -58,8 +59,47 @@ func testFirstWrite() {
 	if err != nil {
 		panic("error")
 	}
+	panic("first write: this should fail")
+}
 
-	panic("this should fail")
+func testDeleteWithEtag() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		panic("error")
+	}
+	defer store.Close()
+	defer session.Close()
+
+	item := &Item{ID: key, Value: "original"}
+	item2 := &Item{ID: secondKey, Value: "updated"}
+	err = session.Store(item)
+	if err != nil {
+		panic("error")
+	}
+	err = session.Store(item2)
+	if err != nil {
+		panic("error")
+	}
+	err = session.SaveChanges()
+	if err != nil {
+		panic("error")
+	}
+	store1, session1, err1 := openSession(dbName)
+	if err1 != nil {
+		panic("error")
+	}
+	defer store1.Close()
+	defer session1.Close()
+	err = session1.DeleteByID(key, "NotCorrectChangeVectorForSure#$")
+	if err != nil {
+		panic("this is ok?")
+	}
+	err = session.SaveChanges()
+	if err != nil {
+		panic("this is ok also?")
+	}
+
+	panic("delete with etag: this should fail")
 }
 
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
