@@ -41,7 +41,7 @@ try
 {
     using (var session = store.OpenSession())
     {
-        session.Store(item2, changeVector: "", id: "Appointment/1");
+        session.Store(item2, changeVector: "", id: "1");
         session.SaveChanges();
     }
 }
