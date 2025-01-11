@@ -11,13 +11,13 @@ var (
 )
 
 type Item struct {
-	ID    string
+	Id    string
 	Value string
 }
 
 const (
-	key       string = "1"
-	secondKey string = "2"
+	key       string = "items/1"
+	secondKey string = "items/2"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func testFirstWrite() {
 	defer store.Close()
 	defer session.Close()
 
-	item := &Item{ID: key, Value: "original"}
+	item := &Item{Id: key, Value: "original"}
 	err = session.Store(item)
 	if err != nil {
 		panic(err)
@@ -43,7 +43,7 @@ func testFirstWrite() {
 	if err != nil {
 		panic("error")
 	}
-	updateItem := &Item{ID: key, Value: "updated"}
+	updateItem := &Item{Id: key, Value: "updated"}
 	store1, session1, err1 := openSession(dbName)
 	if err1 != nil {
 		panic("error")
@@ -70,8 +70,8 @@ func testDeleteWithEtag() {
 	defer store.Close()
 	defer session.Close()
 
-	item := &Item{ID: key, Value: "original"}
-	item2 := &Item{ID: secondKey, Value: "updated"}
+	item := &Item{Id: key, Value: "original"}
+	item2 := &Item{Id: secondKey, Value: "updated"}
 	err = session.Store(item)
 	if err != nil {
 		panic("error")

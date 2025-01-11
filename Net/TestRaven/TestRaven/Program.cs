@@ -19,13 +19,13 @@ static IDocumentStore GertStore()
 
 var item1 = new Item()
 {
-    ID = "1",
+    Id = "items/1",
     Value = "original"
 };
 
 var item2 = new Item()
 {
-    ID = "1",
+    Id = "items/1",
     Value = "updated"
 };
 
@@ -41,13 +41,26 @@ try
 {
     using (var session = store.OpenSession())
     {
-        session.Store(item2, changeVector: "", id: "1");
+        session.Store(item2, changeVector: "", id: "items/1");
         session.SaveChanges();
     }
 }
 catch (ConcurrencyException _)
 {
     Console.WriteLine("Document was not saved, because it would override existing document");
+}
+
+try
+{
+    using (var session = store.OpenSession())
+    {
+        session.Delete("items/1", "randomChangeVectorShouldFail");
+        session.SaveChanges();
+    }
+}
+catch (Exception e)
+{
+    Console.WriteLine("document not delted wrong change vector");
 }
 
 
