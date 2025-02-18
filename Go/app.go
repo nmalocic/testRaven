@@ -11,7 +11,7 @@ var (
 )
 
 type Item struct {
-	Id    string
+	ID    string
 	Value string
 }
 
@@ -21,8 +21,9 @@ const (
 )
 
 func main() {
-	testFirstWrite()
+	//testFirstWrite()
 	//testDeleteWithEtag()
+	transaction()
 }
 
 func testFirstWrite() {
@@ -33,7 +34,7 @@ func testFirstWrite() {
 	defer store.Close()
 	defer session.Close()
 
-	item := &Item{Id: key, Value: "original"}
+	item := &Item{ID: key, Value: "original"}
 	err = session.Store(item)
 	if err != nil {
 		panic(err)
@@ -43,7 +44,7 @@ func testFirstWrite() {
 	if err != nil {
 		panic("error")
 	}
-	updateItem := &Item{Id: key, Value: "updated"}
+	updateItem := &Item{ID: key, Value: "updated"}
 	store1, session1, err1 := openSession(dbName)
 	if err1 != nil {
 		panic("error")
@@ -51,13 +52,13 @@ func testFirstWrite() {
 	defer store1.Close()
 	defer session1.Close()
 
-	err = session1.StoreWithChangeVectorAndID(updateItem, "", key)
+	err = session1.StoreWithChangeVectorAndID(updateItem, "Non-ExistingKey", key)
 	if err != nil {
 		panic("error")
 	}
 	err = session1.SaveChanges()
 	if err != nil {
-		panic("error")
+		panic(err)
 	}
 	panic("first write: this should fail")
 }
@@ -70,8 +71,8 @@ func testDeleteWithEtag() {
 	defer store.Close()
 	defer session.Close()
 
-	item := &Item{Id: key, Value: "original"}
-	item2 := &Item{Id: secondKey, Value: "updated"}
+	item := &Item{ID: key, Value: "original"}
+	item2 := &Item{ID: secondKey, Value: "updated"}
 	err = session.Store(item)
 	if err != nil {
 		panic("error")
@@ -100,6 +101,40 @@ func testDeleteWithEtag() {
 	}
 
 	panic("delete with etag: this should fail")
+}
+
+func transaction() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		panic("error")
+	}
+	defer store.Close()
+	defer session.Close()
+	item1 := &Item{ID: key, Value: "value1"}
+
+	item2 := &Item{ID: secondKey, Value: "value2"}
+
+	err = session.Store(item1)
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.Store(item2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.DeleteByID(key, "")
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("finished")
 }
 
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {
