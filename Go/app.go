@@ -23,7 +23,8 @@ const (
 func main() {
 	//testFirstWrite()
 	//testDeleteWithEtag()
-	transaction()
+	//transaction()
+	query()
 }
 
 func testFirstWrite() {
@@ -114,6 +115,8 @@ func transaction() {
 
 	item2 := &Item{ID: secondKey, Value: "value2"}
 
+	deleteItem := &Item{ID: key}
+
 	err = session.Store(item1)
 	if err != nil {
 		panic(err)
@@ -124,7 +127,11 @@ func transaction() {
 		panic(err)
 	}
 
-	err = session.DeleteByID(key, "")
+	//err = session.DeleteByID(key, "")
+	//if err != nil {
+	//	panic(err)
+	//}
+	err = session.Delete(deleteItem)
 	if err != nil {
 		panic(err)
 	}
@@ -135,6 +142,42 @@ func transaction() {
 	}
 
 	fmt.Println("finished")
+}
+
+func query() {
+	store, session, err := openSession(dbName)
+	if err != nil {
+		panic("error")
+	}
+	defer store.Close()
+	defer session.Close()
+
+	item := &Item{ID: key, Value: "original"}
+	item2 := &Item{ID: secondKey, Value: "original second"}
+	err = session.Store(item)
+	if err != nil {
+		panic(err)
+	}
+	err = session.Store(item2)
+	if err != nil {
+		panic(err)
+	}
+
+	err = session.SaveChanges()
+	if err != nil {
+		panic(err)
+	}
+
+	query := session.QueryCollection("items")
+	query = query.Search("Value", "original")
+
+	result := new([]*Item)
+	err = query.GetResults(result)
+	if err != nil {
+		fmt.Printf("Failed query", err)
+	}
+
+	fmt.Println(len(*result))
 }
 
 func getDocumentStore(databaseName string) (*ravendb.DocumentStore, error) {

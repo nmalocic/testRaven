@@ -18,11 +18,18 @@ public static class FirstWriteWins
             ID = "1",
             Value = "updated"
         };
-        
-        using (var session = store.OpenSession())
+
+        try
         {
-            session.Store(item1);
-            session.SaveChanges();
+            using (var session = store.OpenSession())
+            {
+                session.Store(item1, changeVector: "", id: "1");
+                session.SaveChanges();
+            }
+        }
+        catch (ConcurrencyException _)
+        {
+            Console.WriteLine("Document was not saved, because it would override existing document");
         }
 
         try

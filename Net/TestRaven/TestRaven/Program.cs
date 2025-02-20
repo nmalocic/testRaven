@@ -19,7 +19,7 @@ static IDocumentStore GertStore()
 
 var store = GertStore();
 
-Transaction.CheckTransaction(store);
-//FirstWriteWins.FirstWrite(store);
+//Transaction.CheckTransaction(store);
+FirstWriteWins.FirstWrite(store);
 
 
