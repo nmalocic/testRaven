@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/ravendb/ravendb-go-client"
+	"math/rand"
 )
 
 var (
 	dbName        = "testdapr"
 	serverNodeURL = "http://127.0.0.1:8080"
 )
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 type Item struct {
 	ID    string
@@ -21,10 +24,10 @@ const (
 )
 
 func main() {
-	//testFirstWrite()
+	testFirstWrite()
 	//testDeleteWithEtag()
 	//transaction()
-	query()
+	//query()
 }
 
 func testFirstWrite() {
@@ -36,14 +39,14 @@ func testFirstWrite() {
 	defer session.Close()
 
 	item := &Item{ID: key, Value: "original"}
-	err = session.Store(item)
+	err = session.StoreWithChangeVectorAndID(item, RandStringRunes(5), key)
 	if err != nil {
 		panic(err)
 	}
 
 	err = session.SaveChanges()
 	if err != nil {
-		panic("error")
+		panic(err)
 	}
 	updateItem := &Item{ID: key, Value: "updated"}
 	store1, session1, err1 := openSession(dbName)
@@ -53,9 +56,9 @@ func testFirstWrite() {
 	defer store1.Close()
 	defer session1.Close()
 
-	err = session1.StoreWithChangeVectorAndID(updateItem, "Non-ExistingKey", key)
+	err = session1.StoreWithChangeVectorAndID(updateItem, RandStringRunes(5), key)
 	if err != nil {
-		panic("error")
+		panic(err)
 	}
 	err = session1.SaveChanges()
 	if err != nil {
@@ -200,4 +203,12 @@ func openSession(databaseName string) (*ravendb.DocumentStore, *ravendb.Document
 		return nil, nil, fmt.Errorf("store.OpenSession() failed with %s", err)
 	}
 	return store, session, nil
+}
+
+func RandStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
